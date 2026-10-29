@@ -3,529 +3,898 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>For Boopa // Birthday Studio</title>
+  <title>BoopaOS // Birthday Experience</title>
   <style>
     :root {
-      --bg: #090b0e;
-      --panel: #12151c;
-      --accent: #10b981;
-      --accent-glow: rgba(16, 185, 129, 0.25);
+      --bg: #07090d;
+      --card: #11151f;
+      --border: #1f2737;
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.3);
+      --rose: #f43f5e;
+      --gold: #f59e0b;
       --text: #f3f4f6;
-      --muted: #6b7280;
+      --muted: #9ca3af;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; user-select: none; }
 
     body {
-      background-color: var(--bg);
-      background-image: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08), transparent 60%);
+      background: radial-gradient(circle at 50% -10%, #132a26, var(--bg) 60%);
       color: var(--text);
       min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Confetti Canvas */
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* Top Navigation Bar */
+    .navbar {
+      margin-top: 20px;
+      background: rgba(17, 21, 31, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px;
+      display: flex;
+      gap: 6px;
+      z-index: 10;
+      flex-wrap: wrap;
+      justify-content: center;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .nav-btn:hover { color: #fff; }
+    .nav-btn.active {
+      background: var(--emerald);
+      color: #052e16;
+      box-shadow: 0 0 20px var(--emerald-glow);
+    }
+
+    /* Main Container */
+    .stage {
+      width: 100%;
+      max-width: 920px;
+      padding: 25px 20px 60px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tab-view {
+      display: none;
+      width: 100%;
+      animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .tab-view.active { display: block; }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(15px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ==========================================
+       TAB 1: INTERACTIVE VINYL TURNTABLE
+       ========================================== */
+    .vinyl-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 32px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+    }
+
+    @media (max-width: 768px) { .vinyl-layout { grid-template-columns: 1fr; } }
+
+    .turntable-box {
+      background: #0b0e15;
+      border: 1px solid #1c2230;
+      border-radius: 22px;
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .record-wrapper {
+      width: 240px;
+      height: 240px;
+      position: relative;
+      perspective: 800px;
+      cursor: pointer;
+    }
+
+    .vinyl-disc {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: repeating-radial-gradient(#111 0px, #111 3px, #1c1c1c 4px, #111 5px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.9), inset 0 0 25px rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: transform 0.6s ease;
+    }
+
+    .vinyl-disc.spinning {
+      animation: spinRecord 4s linear infinite;
+    }
+
+    @keyframes spinRecord { 100% { transform: rotate(360deg); } }
+
+    .record-label {
+      width: 86px;
+      height: 86px;
+      border-radius: 50%;
+      background: conic-gradient(from 45deg, var(--emerald), #059669, #34d399, var(--emerald));
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-    }
-
-    .studio-deck {
-      background: var(--panel);
-      border: 1px solid #222733;
-      border-radius: 24px;
-      padding: 32px;
-      max-width: 820px;
-      width: 100%;
-      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.85);
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #222733;
-      padding-bottom: 20px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-
-    .title-area h1 {
-      font-size: 1.45rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: #fff;
-    }
-
-    .title-area h1 span { color: var(--accent); }
-    .title-area p { font-size: 0.85rem; color: var(--muted); margin-top: 5px; }
-
-    .status-badge {
-      background: #1a1f29;
-      border: 1px solid #2d3545;
-      padding: 10px 18px;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      color: var(--text);
-      transition: all 0.3s ease;
-    }
-
-    .status-badge:hover { border-color: var(--accent); }
-
-    .status-badge.active {
-      border-color: var(--accent);
-      background: rgba(16, 185, 129, 0.12);
-      color: var(--accent);
-    }
-
-    .dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #ef4444;
-      transition: all 0.3s ease;
-    }
-
-    .status-badge.active .dot {
-      background: var(--accent);
-      box-shadow: 0 0 12px var(--accent);
-    }
-
-    /* Live Visualizer */
-    .visualizer-box {
-      width: 100%;
-      height: 70px;
-      background: #0c0e13;
-      border: 1px solid #1e232e;
-      border-radius: 14px;
-      margin-bottom: 24px;
-      overflow: hidden;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    canvas { width: 100%; height: 100%; display: block; }
-
-    .viz-label {
-      position: absolute;
+      text-align: center;
+      padding: 8px;
+      color: #042f2e;
+      font-weight: 800;
       font-size: 0.7rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #374151;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.4);
+    }
+
+    .spindle-hole {
+      width: 12px;
+      height: 12px;
+      background: #0b0e15;
+      border-radius: 50%;
+      margin-top: 4px;
+    }
+
+    /* Tonearm */
+    .tonearm {
+      position: absolute;
+      top: 25px;
+      right: 28px;
+      width: 18px;
+      height: 145px;
+      transform-origin: top center;
+      transform: rotate(-28deg);
+      transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
       pointer-events: none;
     }
 
-    /* Mixer Grid */
-    .mixer-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
-      gap: 16px;
+    .tonearm.playing { transform: rotate(12deg); }
+
+    .arm-base {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: #273042; border: 3px solid var(--emerald);
+      position: absolute; top: -8px; left: -8px;
     }
 
-    .channel {
-      background: #0d1016;
-      border: 1px solid #1e232e;
-      border-radius: 18px;
-      padding: 20px 14px;
+    .arm-rod {
+      width: 5px; height: 130px; background: #9ca3af;
+      margin: 0 auto; border-radius: 4px;
+    }
+
+    .arm-head {
+      width: 16px; height: 24px; background: var(--emerald);
+      margin: -4px auto 0; border-radius: 3px;
+    }
+
+    .deck-controls {
+      display: flex; gap: 12px; margin-top: 22px; width: 100%; justify-content: center;
+    }
+
+    .deck-btn {
+      background: #171d2b; border: 1px solid #2a344a; color: var(--text);
+      padding: 10px 16px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; transition: 0.2s;
+    }
+
+    .deck-btn:hover { border-color: var(--emerald); color: var(--emerald); }
+    .deck-btn.primary { background: var(--emerald); color: #052e16; border-color: var(--emerald); }
+
+    /* Record Crate & Liner Notes */
+    .crate-panel { display: flex; flex-direction: column; justify-content: space-between; }
+    .crate-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 6px; }
+    .crate-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 18px; }
+
+    .vinyl-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .vinyl-item {
+      background: #161b28;
+      border: 1px solid #232b3e;
+      padding: 14px 16px;
+      border-radius: 14px;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      transition: all 0.35s ease;
-    }
-
-    .channel.unlocked {
-      border-color: var(--accent);
-      box-shadow: 0 0 25px var(--accent-glow);
-      transform: translateY(-2px);
-    }
-
-    .track-name {
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: var(--muted);
-      margin-bottom: 14px;
-      text-align: center;
-    }
-
-    .channel.unlocked .track-name { color: var(--accent); }
-
-    .fader-wrap {
-      height: 150px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 8px 0;
-    }
-
-    input[type="range"] {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 135px;
-      height: 6px;
-      background: #222733;
-      border-radius: 5px;
-      transform: rotate(-90deg);
-      outline: none;
+      justify-content: space-between;
       cursor: pointer;
+      transition: all 0.25s ease;
     }
 
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 24px;
-      height: 24px;
-      border-radius: 7px;
-      background: var(--text);
-      border: 2px solid var(--accent);
-      cursor: grab;
-      box-shadow: 0 0 12px rgba(0,0,0,0.6);
-      transition: transform 0.1s ease;
+    .vinyl-item:hover, .vinyl-item.selected {
+      border-color: var(--emerald);
+      background: rgba(16, 185, 129, 0.1);
+      transform: translateX(4px);
     }
 
-    input[type="range"]::-webkit-slider-thumb:active {
-      cursor: grabbing;
-      transform: scale(1.1);
-    }
+    .vinyl-item-left { display: flex; align-items: center; gap: 12px; }
+    .mini-disc { width: 32px; height: 32px; border-radius: 50%; background: var(--emerald); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; font-size: 0.75rem; }
 
-    .level-readout {
-      font-family: monospace;
-      font-size: 0.85rem;
-      color: var(--accent);
-      margin-top: 10px;
-    }
-
-    .memory-card {
-      margin-top: 14px;
-      font-size: 0.8rem;
-      color: var(--muted);
-      text-align: center;
-      line-height: 1.45;
-      min-height: 75px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0.2;
-      filter: blur(5px);
-      transition: all 0.5s ease;
-      padding: 0 4px;
-    }
-
-    .channel.unlocked .memory-card {
-      opacity: 1;
-      filter: blur(0);
+    .liner-note-box {
+      margin-top: 18px;
+      background: rgba(16, 185, 129, 0.07);
+      border-left: 3px solid var(--emerald);
+      padding: 16px;
+      border-radius: 0 12px 12px 0;
+      font-size: 0.9rem;
+      line-height: 1.55;
       color: #e5e7eb;
     }
 
-    /* Final Birthday Message Reveal */
-    .master-reveal {
-      margin-top: 28px;
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(16, 185, 129, 0.02));
-      border: 1px solid var(--accent);
-      border-radius: 18px;
-      padding: 28px 24px;
+    /* ==========================================
+       TAB 2: PLAYABLE 12-PAD LO-FI & GUITAR SYNTH
+       ========================================== */
+    .launchpad-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 32px;
       text-align: center;
-      display: none;
-      animation: fadeIn 0.8s ease forwards;
+      position: relative;
+      overflow: hidden;
     }
 
-    .master-reveal.show { display: block; }
-    .master-reveal h2 { font-size: 1.4rem; color: var(--accent); margin-bottom: 12px; }
-    .master-reveal p { font-size: 0.98rem; line-height: 1.65; color: #e5e7eb; max-width: 620px; margin: 0 auto; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
+    .floating-compliment {
+      min-height: 48px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--emerald);
+      margin: 14px 0 22px;
+      transition: 0.2s;
     }
+
+    .pad-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 500px) { .pad-grid { grid-template-columns: repeat(3, 1fr); } }
+
+    .music-pad {
+      aspect-ratio: 1;
+      background: #171c28;
+      border: 2px solid #262f45;
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.12s ease;
+      padding: 10px;
+    }
+
+    .music-pad:active, .music-pad.triggered {
+      transform: scale(0.93);
+      border-color: var(--emerald);
+      background: rgba(16, 185, 129, 0.25);
+      box-shadow: 0 0 25px var(--emerald-glow);
+    }
+
+    .pad-note { font-size: 1.1rem; font-weight: 800; color: #fff; }
+    .pad-label { font-size: 0.7rem; color: var(--muted); margin-top: 6px; }
+
+    /* ==========================================
+       TAB 3: BOOPAFLIX STREAMING PORTAL
+       ========================================== */
+    .flix-card {
+      background: #0b0d13;
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+    }
+
+    .flix-hero {
+      background: linear-gradient(to top, #0b0d13 10%, rgba(16, 185, 129, 0.22)), radial-gradient(circle at 80% 20%, #1e3a8a, #090d16);
+      padding: 48px 32px 32px;
+      position: relative;
+    }
+
+    .flix-badge {
+      display: inline-block;
+      background: #e11d48;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+
+    .flix-title { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 10px; }
+    .flix-meta { display: flex; gap: 12px; font-size: 0.85rem; color: #a7f3d0; font-weight: 600; margin-bottom: 16px; align-items: center; }
+    .flix-desc { max-width: 550px; font-size: 0.95rem; line-height: 1.6; color: #d1d5db; }
+
+    .flix-row { padding: 24px 32px 32px; }
+    .flix-row h3 { font-size: 1rem; margin-bottom: 16px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+    .episode-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+    }
+
+    .ep-card {
+      background: #151924;
+      border: 1px solid #232a3b;
+      border-radius: 16px;
+      padding: 18px;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+
+    .ep-card:hover {
+      border-color: var(--emerald);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.5);
+    }
+
+    .ep-num { font-size: 0.72rem; color: var(--emerald); font-weight: 700; text-transform: uppercase; }
+    .ep-name { font-size: 1.05rem; font-weight: 700; margin: 6px 0 8px; }
+    .ep-plot { font-size: 0.82rem; color: var(--muted); line-height: 1.45; }
+
+    /* ==========================================
+       TAB 4: SCRATCH-OFF CARD & VIP COUPONS
+       ========================================== */
+    .vault-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .scratch-container {
+      position: relative;
+      width: 100%;
+      max-width: 520px;
+      height: 210px;
+      margin: 20px auto;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 2px solid var(--emerald);
+      box-shadow: 0 0 30px var(--emerald-glow);
+    }
+
+    .secret-underneath {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #064e3b, #0f172a);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .secret-underneath h2 { color: #34d399; font-size: 1.5rem; margin-bottom: 10px; }
+    .secret-underneath p { font-size: 0.95rem; line-height: 1.55; color: #f3f4f6; }
+
+    #scratch-pad {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .coupon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-top: 26px;
+    }
+
+    .coupon {
+      background: #161b26;
+      border: 1px dashed var(--emerald);
+      border-radius: 14px;
+      padding: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .coupon.claimed {
+      background: rgba(16, 185, 129, 0.18);
+      border-style: solid;
+    }
+
+    .coupon h4 { font-size: 0.95rem; color: #fff; margin-bottom: 6px; }
+    .coupon span { font-size: 0.75rem; color: var(--emerald); font-weight: 700; }
   </style>
 </head>
 <body>
 
-  <div class="studio-deck">
-    <div class="header">
-      <div class="title-area">
-        <h1>SESSION // <span>FOR BOOPA</span></h1>
-        <p>Slide all 4 faders above 75% to build our soundscape & unlock your birthday note</p>
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <button class="nav-btn active" onclick="switchTab(0)">💿 1. Vinyl Deck</button>
+    <button class="nav-btn" onclick="switchTab(1)">🎹 2. Sound Pads</button>
+    <button class="nav-btn" onclick="switchTab(2)">🎬 3. BoopaFlix</button>
+    <button class="nav-btn" onclick="switchTab(3)">🎁 4. Scratch & Claim</button>
+  </nav>
+
+  <main class="stage">
+
+    <!-- TAB 1: 3D VINYL DECK -->
+    <section class="tab-view active" id="tab-0">
+      <div class="vinyl-layout">
+        <div class="turntable-box">
+          <div class="record-wrapper" onclick="toggleVinylPlay()">
+            <div class="vinyl-disc" id="vinyl-disc">
+              <div class="record-label" id="disc-label">
+                <span id="disc-title">BOOPA FM</span>
+                <div class="spindle-hole"></div>
+              </div>
+            </div>
+          </div>
+          <div class="tonearm" id="tonearm">
+            <div class="arm-base"></div>
+            <div class="arm-rod"></div>
+            <div class="arm-head"></div>
+          </div>
+          <div class="deck-controls">
+            <button class="deck-btn primary" id="play-vinyl-btn" onclick="toggleVinylPlay()">▶ Spin Record</button>
+            <button class="deck-btn" onclick="triggerConfetti()">✨ Birthday Spark</button>
+          </div>
+        </div>
+
+        <div class="crate-panel">
+          <div>
+            <h2 class="crate-title">Boopa's Private Vinyl Crate</h2>
+            <p class="crate-sub">Select a record below to load it onto the turntable & read the sleeve notes:</p>
+            <div class="vinyl-list" id="vinyl-list"></div>
+          </div>
+          <div class="liner-note-box" id="liner-note">
+            Click any vinyl above and hit "Spin Record" to hear its custom frequency & unlock its note!
+          </div>
+        </div>
       </div>
-      <button class="status-badge" id="power-btn">
-        <span class="dot"></span>
-        <span id="power-text">INITIALIZE AUDIO</span>
-      </button>
-    </div>
+    </section>
 
-    <div class="visualizer-box">
-      <span class="viz-label" id="viz-status">STANDBY FREQUENCY</span>
-      <canvas id="waveform"></canvas>
-    </div>
+    <!-- TAB 2: 12-PAD SYNTH & COMPLIMENT GENERATOR -->
+    <section class="tab-view" id="tab-1">
+      <div class="launchpad-card">
+        <h2>Boopa's Harmonic Launchpad</h2>
+        <p style="color: var(--muted); font-size: 0.9rem; margin-top: 4px;">Tap the glowing pads (or press keys 1-9) to play guitar chords & unlock reasons why you're the best</p>
+        <div class="floating-compliment" id="compliment-display">✨ Tap any pad to play a note ✨</div>
+        <div class="pad-grid" id="pad-grid"></div>
+      </div>
+    </section>
 
-    <div class="mixer-grid" id="mixer"></div>
+    <!-- TAB 3: BOOPAFLIX -->
+    <section class="tab-view" id="tab-2">
+      <div class="flix-card">
+        <div class="flix-hero">
+          <span class="flix-badge">BOOPAFLIX ORIGINAL</span>
+          <h1 class="flix-title">The Chronicles of Boopa</h1>
+          <div class="flix-meta">
+            <span>99.9% Match</span>
+            <span>•</span>
+            <span>2026 Birthday Edition</span>
+            <span>•</span>
+            <span style="border: 1px solid #a7f3d0; padding: 1px 6px; border-radius: 4px;">4K HDR</span>
+          </div>
+          <p class="flix-desc">
+            Starring the funniest, prettiest, and most chaotic girl on the planet. Click on any episode below to unlock the director's commentary.
+          </p>
+        </div>
+        <div class="flix-row">
+          <h3>Season 1 // Favorite Episodes</h3>
+          <div class="episode-grid" id="episode-grid"></div>
+        </div>
+      </div>
+    </section>
 
-    <div class="master-reveal" id="final-message">
-      <h2 id="final-heading"></h2>
-      <p id="final-body"></p>
-    </div>
-  </div>
+    <!-- TAB 4: SCRATCH CARD & VIP COUPONS -->
+    <section class="tab-view" id="tab-3">
+      <div class="vault-card">
+        <h2>Scratch Your Birthday Card 🪙</h2>
+        <p style="color: var(--muted); font-size: 0.9rem; margin-top: 4px;">Rub your finger or mouse across the silver foil below to reveal your secret birthday message!</p>
+
+        <div class="scratch-container">
+          <div class="secret-underneath">
+            <h2>Happy Birthday, Boopa! 💚🎂</h2>
+            <p>You make every single day brighter, louder, and infinitely better. Here's to your happiest year yet—and everything we have ahead of us!</p>
+          </div>
+          <canvas id="scratch-pad"></canvas>
+        </div>
+
+        <h3 style="margin-top: 28px; font-size: 1.05rem;">🎟️ Tap to Claim Your Birthday VIP Passes:</h3>
+        <div class="coupon-grid" id="coupon-grid"></div>
+      </div>
+    </section>
+
+  </main>
 
   <script>
     // =========================================================================
-    // CUSTOMIZE YOUR NOTES FOR BOOPA HERE (If you want to tweak the words!)
+    // 1. ALL YOUR CUSTOM CONTENT FOR BOOPA (Easy to edit!)
     // =========================================================================
-    const CONFIG = {
-      finalHeading: "Happy Birthday, Boopa! ✨💚",
-      finalLetter: "Just like a song only feels complete when every frequency locks into harmony, life hits a whole different note with you in it. Thank you for being my favorite melody, my calm in the noise, and my favorite person. Here is to your happiest, brightest year yet.",
-      tracks: [
+    const DATA = {
+      vinylRecords: [
         {
-          name: "01 / Warm Chords",
-          secretNote: "For the effortless warmth and comfort you bring into every single day."
+          title: "Side A // Warm Acoustic",
+          color: "#10b981",
+          chord: [261.63, 329.63, 392.00, 493.88], // Cmaj7
+          note: "🎵 Sleeve Note #1: For the effortless calm and warmth you bring into my life every single day. Nothing beats just being around you."
         },
         {
-          name: "02 / Midnight Pluck",
-          secretNote: "Because even the quietest, simplest moments with you turn into my favorite memories."
+          title: "Side B // Midnight Laughs",
+          color: "#f43f5e",
+          chord: [220.00, 261.63, 329.63, 392.00], // Am7
+          note: "🎵 Sleeve Note #2: Dedicated to all our random inside jokes, chaotic conversations, and moments where we can't stop laughing."
         },
         {
-          name: "03 / Vinyl Rain",
-          secretNote: "For all our random inside jokes, late-night talks, and unstoppable laughs."
+          title: "Side C // Golden Hour",
+          color: "#f59e0b",
+          chord: [174.61, 220.00, 261.63, 349.23], // Fmaj7
+          note: "🎵 Sleeve Note #3: Even the most ordinary days feel like a core memory when I'm spending them with you, Boopa."
         },
         {
-          name: "04 / Heartbeat Bass",
-          secretNote: "You're the steady rhythm underneath everything. Happy Birthday, Boopa."
+          title: "Side D // Birthday Anthem",
+          color: "#8b5cf6",
+          chord: [196.00, 246.94, 293.66, 392.00], // G6
+          note: "🎵 Sleeve Note #4: Happy Birthday, my favorite person! May this year bring you everything you've been wishing for and more."
         }
+      ],
+      padCompliments: [
+        "1. Your smile literally fixes my worst days instantly.",
+        "2. The way you get excited about the little things.",
+        "3. Best music & food partner on the planet.",
+        "4. You're effortlessly the prettiest person in every room.",
+        "5. Even silence feels comfortable with you.",
+        "6. How you always know what I'm thinking.",
+        "7. Your dramatic storytelling is 10/10 entertainment.",
+        "8. Because being 'Boopa' is a whole vibe of its own.",
+        "9. Every guitar melody sounds better when it's for you.",
+        "10. You make me feel more confident just by being there.",
+        "11. Certified cutest birthday girl of 2026.",
+        "12. Here's to making 1,000 more memories together! 💚"
+      ],
+      episodes: [
+        {
+          ep: "Episode 1",
+          title: "The Pilot That Changed Everything",
+          plot: "Where it all started. Best plot twist of my life was meeting you.",
+          popup: "Director's Note: Still my favorite day. 10/10 would replay forever."
+        },
+        {
+          ep: "Episode 2",
+          title: "Food Runs & Inside Jokes",
+          plot: "Two people, endless cravings, and jokes nobody else would ever understand.",
+          popup: "Director's Note: Next food outing is 100% on me—pick anything you want!"
+        },
+        {
+          ep: "Episode 3",
+          title: "The Unstoppable Laughs",
+          plot: "When one look is enough to make both of us lose it completely.",
+          popup: "Director's Note: Your laugh is still my favorite sound in the world."
+        },
+        {
+          ep: "Episode 4 (Season Finale)",
+          title: "The Birthday Girl Special",
+          plot: "All eyes on Boopa today. Celebrating another iconic year of you.",
+          popup: "Director's Note: Happy Birthday Boopa!! Renewed for 100 more seasons 💚"
+        }
+      ],
+      coupons: [
+        { title: "🍕 1x Free Craving Run", sub: "Any food, any time, my treat" },
+        { title: "🎸 1x Private Guitar Session", sub: "Any song request played live for you" },
+        { title: "👑 1x Argument Win Pass", sub: "Instant victory, zero questions asked" },
+        { title: "🎬 1x Movie Night Veto", sub: "You pick the movie, I bring snacks" }
       ]
     };
-    // =========================================================================
-
-    document.getElementById('final-heading').innerText = CONFIG.finalHeading;
-    document.getElementById('final-body').innerText = CONFIG.finalLetter;
-
-    const mixerEl = document.getElementById('mixer');
-    const powerBtn = document.getElementById('power-btn');
-    const powerText = document.getElementById('power-text');
-    const finalBox = document.getElementById('final-message');
-    const vizStatus = document.getElementById('viz-status');
-
-    // Build UI Channels
-    CONFIG.tracks.forEach((track, index) => {
-      const channel = document.createElement('div');
-      channel.className = 'channel';
-      channel.id = `channel-${index}`;
-      channel.innerHTML = `
-        <div class="track-name">${track.name}</div>
-        <div class="fader-wrap">
-          <input type="range" min="0" max="100" value="0" data-index="${index}">
-        </div>
-        <div class="level-readout" id="readout-${index}">0%</div>
-        <div class="memory-card">${track.secretNote}</div>
-      `;
-      mixerEl.appendChild(channel);
-    });
 
     // =========================================================================
-    // BUILT-IN WEB AUDIO SYNTHESIZER ENGINE (Zero external MP3s required)
+    // 2. WEB AUDIO ENGINE (Guitar Plucks & Warm Vinyl Chords)
     // =========================================================================
     let audioCtx = null;
-    let isPlaying = false;
-    let masterAnalyser = null;
-    const channelGains = [null, null, null, null];
-    let intervals = [];
+    let vinylOscillators = [];
+    let isVinylSpinning = false;
+    let currentVinylIndex = 0;
 
-    function initAudioEngine() {
-      if (audioCtx) return;
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-
-      masterAnalyser = audioCtx.createAnalyser();
-      masterAnalyser.fftSize = 256;
-      masterAnalyser.connect(audioCtx.destination);
-
-      // Create Master Gains for the 4 Faders
-      for (let i = 0; i < 4; i++) {
-        channelGains[i] = audioCtx.createGain();
-        channelGains[i].gain.value = 0;
-        channelGains[i].connect(masterAnalyser);
+    function ensureAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
       }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
 
-      // 1. Track 1: Warm Ambient Maj9 Pad Chords
-      const chordFreqs = [261.63, 329.63, 392.00, 493.88, 587.33]; // Cmaj9
-      const padFilter = audioCtx.createBiquadFilter();
-      padFilter.type = 'lowpass';
-      padFilter.frequency.value = 650;
-      padFilter.connect(channelGains[0]);
+    function playPluck(freq) {
+      ensureAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
-      chordFreqs.forEach(freq => {
+      gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.28, audioCtx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.5);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 1.55);
+    }
+
+    function startVinylAudio(chord) {
+      ensureAudio();
+      stopVinylAudio();
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 750;
+      filter.connect(audioCtx.destination);
+
+      chord.forEach(freq => {
         const osc = audioCtx.createOscillator();
-        const subGain = audioCtx.createGain();
+        const gain = audioCtx.createGain();
         osc.type = 'sawtooth';
         osc.frequency.value = freq;
-        osc.detune.value = (Math.random() - 0.5) * 14;
-        subGain.gain.value = 0.06;
-        osc.connect(subGain);
-        subGain.connect(padFilter);
+        osc.detune.value = (Math.random() - 0.5) * 12;
+        gain.gain.value = 0.04;
+        osc.connect(gain);
+        gain.connect(filter);
         osc.start();
+        vinylOscillators.push({ osc, gain });
       });
-
-      // 2. Track 2: Generative Plucked Arpeggio Melody
-      const scale = [523.25, 587.33, 659.25, 783.99, 987.77, 1046.50];
-      const melodyLoop = setInterval(() => {
-        if (!isPlaying || !audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const noteGain = audioCtx.createGain();
-        osc.type = 'triangle';
-        const note = scale[Math.floor(Math.random() * scale.length)];
-        osc.frequency.setValueAtTime(note, audioCtx.currentTime);
-
-        noteGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
-        noteGain.gain.exponentialRampToValueAtTime(0.18, audioCtx.currentTime + 0.04);
-        noteGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.4);
-
-        osc.connect(noteGain);
-        noteGain.connect(channelGains[1]);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 1.45);
-      }, 450);
-      intervals.push(melodyLoop);
-
-      // 3. Track 3: Cozy Vinyl Rain / Lo-Fi Texture
-      const bufferSize = audioCtx.sampleRate * 2;
-      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
-      }
-      const whiteNoise = audioCtx.createBufferSource();
-      whiteNoise.buffer = noiseBuffer;
-      whiteNoise.loop = true;
-
-      const rainFilter = audioCtx.createBiquadFilter();
-      rainFilter.type = 'bandpass';
-      rainFilter.frequency.value = 1100;
-      rainFilter.Q.value = 0.7;
-
-      const rainGain = audioCtx.createGain();
-      rainGain.gain.value = 0.12;
-
-      whiteNoise.connect(rainFilter);
-      rainFilter.connect(rainGain);
-      rainGain.connect(channelGains[2]);
-      whiteNoise.start();
-
-      // 4. Track 4: Warm Heartbeat Sub-Bass
-      const bassLoop = setInterval(() => {
-        if (!isPlaying || !audioCtx) return;
-        const triggerPulse = (delay) => {
-          const osc = audioCtx.createOscillator();
-          const bGain = audioCtx.createGain();
-          osc.type = 'sine';
-          const now = audioCtx.currentTime + delay;
-          osc.frequency.setValueAtTime(95, now);
-          osc.frequency.exponentialRampToValueAtTime(42, now + 0.25);
-
-          bGain.gain.setValueAtTime(0.001, now);
-          bGain.gain.linearRampToValueAtTime(0.45, now + 0.03);
-          bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-
-          osc.connect(bGain);
-          bGain.connect(channelGains[3]);
-          osc.start(now);
-          osc.stop(now + 0.5);
-        };
-        triggerPulse(0);
-        triggerPulse(0.28);
-      }, 1800);
-      intervals.push(bassLoop);
-
-      drawVisualizer();
     }
 
-    // Toggle Power Button
-    powerBtn.addEventListener('click', () => {
-      initAudioEngine();
-      if (!isPlaying) {
-        audioCtx.resume();
-        isPlaying = true;
-        powerBtn.classList.add('active');
-        powerText.innerText = 'STUDIO LIVE';
-        vizStatus.style.display = 'none';
+    function stopVinylAudio() {
+      vinylOscillators.forEach(item => {
+        try { item.osc.stop(); } catch (e) {}
+      });
+      vinylOscillators = [];
+    }
+
+    // =========================================================================
+    // 3. TAB 1 LOGIC: VINYL TURNTABLE
+    // =========================================================================
+    const vinylListEl = document.getElementById('vinyl-list');
+    DATA.vinylRecords.forEach((rec, i) => {
+      const item = document.createElement('div');
+      item.className = `vinyl-item ${i === 0 ? 'selected' : ''}`;
+      item.innerHTML = `
+        <div class="vinyl-item-left">
+          <div class="mini-disc" style="background:${rec.color}">0${i+1}</div>
+          <strong>${rec.title}</strong>
+        </div>
+        <span style="font-size:0.8rem; color:var(--muted)">Load ➔</span>
+      `;
+      item.onclick = () => selectVinyl(i);
+      vinylListEl.appendChild(item);
+    });
+
+    function selectVinyl(index) {
+      currentVinylIndex = index;
+      document.querySelectorAll('.vinyl-item').forEach((el, i) => {
+        el.classList.toggle('selected', i === index);
+      });
+      const rec = DATA.vinylRecords[index];
+      document.getElementById('disc-title').innerText = rec.title.split('//')[1];
+      document.getElementById('disc-label').style.background = rec.color;
+      document.getElementById('liner-note').innerText = rec.note;
+      playPluck(rec.chord[2]);
+      if (isVinylSpinning) startVinylAudio(rec.chord);
+    }
+
+    function toggleVinylPlay() {
+      isVinylSpinning = !isVinylSpinning;
+      const disc = document.getElementById('vinyl-disc');
+      const arm = document.getElementById('tonearm');
+      const btn = document.getElementById('play-vinyl-btn');
+      const rec = DATA.vinylRecords[currentVinylIndex];
+
+      if (isVinylSpinning) {
+        disc.classList.add('spinning');
+        arm.classList.add('playing');
+        btn.innerText = '⏸ Pause Record';
+        document.getElementById('liner-note').innerText = rec.note;
+        startVinylAudio(rec.chord);
       } else {
-        audioCtx.suspend();
-        isPlaying = false;
-        powerBtn.classList.remove('active');
-        powerText.innerText = 'PAUSED';
-        vizStatus.style.display = 'block';
+        disc.classList.remove('spinning');
+        arm.classList.remove('playing');
+        btn.innerText = '▶ Spin Record';
+        stopVinylAudio();
       }
-    });
-
-    // Fader Controls
-    document.querySelectorAll('input[type="range"]').forEach(slider => {
-      slider.addEventListener('input', (e) => {
-        const idx = parseInt(e.target.getAttribute('data-index'), 10);
-        const val = parseInt(e.target.value, 10);
-
-        if (!isPlaying) powerBtn.click();
-
-        if (channelGains[idx] && audioCtx) {
-          channelGains[idx].gain.setTargetAtTime(val / 100, audioCtx.currentTime, 0.05);
-        }
-
-        document.getElementById(`readout-${idx}`).innerText = `${val}%`;
-
-        const channelEl = document.getElementById(`channel-${idx}`);
-        if (val >= 75) {
-          channelEl.classList.add('unlocked');
-        } else {
-          channelEl.classList.remove('unlocked');
-        }
-
-        const allSliders = Array.from(document.querySelectorAll('input[type="range"]'));
-        const allUnlocked = allSliders.every(s => parseInt(s.value, 10) >= 75);
-        if (allUnlocked) {
-          finalBox.classList.add('show');
-        }
-      });
-    });
-
-    // Live Oscilloscope Visualizer
-    function drawVisualizer() {
-      const canvas = document.getElementById('waveform');
-      const ctx = canvas.getContext('2d');
-      canvas.width = canvas.clientWidth * window.devicePixelRatio;
-      canvas.height = canvas.clientHeight * window.devicePixelRatio;
-
-      const bufferLength = masterAnalyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-
-      function render() {
-        requestAnimationFrame(render);
-        masterAnalyser.getByteTimeDomainData(dataArray);
-
-        ctx.fillStyle = '#0c0e13';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.lineWidth = 2.5;
-        ctx.strokeStyle = '#10b981';
-        ctx.beginPath();
-
-        const sliceWidth = canvas.width / bufferLength;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-          const v = dataArray[i] / 128.0;
-          const y = (v * canvas.height) / 2;
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-          x += sliceWidth;
-        }
-        ctx.lineTo(canvas.width, canvas.height / 2);
-        ctx.stroke();
-      }
-      render();
     }
+
+    // =========================================================================
+    // 4. TAB 2 LOGIC: 12-PAD SYNTHESIZER
+    // =========================================================================
+    const padGrid = document.getElementById('pad-grid');
+    const pentatonic = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66];
+
+    DATA.padCompliments.forEach((text, i) => {
+      const pad = document.createElement('div');
+      pad.className = 'music-pad';
+      pad.innerHTML = `<span class="pad-note">PAD 0${i+1}</span><span class="pad-label">Tap Note</span>`;
+      pad.onclick = () => {
+        playPluck(pentatonic[i]);
+        document.getElementById('compliment-display').innerText = text;
+        pad.classList.add('triggered');
+        setTimeout(() => pad.classList.remove('triggered'), 200);
+      };
+      padGrid.appendChild(pad);
+    });
+
+    // =========================================================================
+    // 5. TAB 3 LOGIC: BOOPAFLIX
+    // =========================================================================
+    const epGrid = document.getElementById('episode-grid');
+    DATA.episodes.forEach(ep => {
+      const card = document.createElement('div');
+      card.className = 'ep-card';
+      card.innerHTML = `
+        <div class="ep-num">${ep.ep}</div>
+        <div class="ep-name">${ep.title}</div>
+        <div class="ep-plot">${ep.plot}</div>
+      `;
+      card.onclick = () => {
+        playPluck(523.25);
+        card.querySelector('.ep-plot').innerHTML = `<strong style="color:var(--emerald)">${ep.popup}</strong>`;
+      };
+      epGrid.appendChild(card);
+    });
+
+    // =========================================================================
+    // 6. TAB 4 LOGIC: SCRATCH CARD & COUPONS
+    // =========================================================================
+    const couponGrid = document.getElementById('coupon-grid');
+    DATA.coupons.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'coupon';
+      div.innerHTML = `<h4>${c.title}</h4><span>${c.sub}</span>`;
+      div.onclick = () => {
+        div.classList.add('claimed');
+        div.querySelector('span').innerText = "✅ CLAIMED BY BOOPA!";
+        playPluck(659.25);
+        triggerConfetti();
+      };
+      couponGrid.appendChild(div);
+    });
+
+    function initScratchCard() {
+      const canvas = document.getElementById('scratch-pad');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.offsetWidth || 500;
+      canvas.height = canvas.offsetHeight || 210;
+
+      ctx.fillStyle = '#374151';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'bold 18px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('✨ SCRATCH HERE WITH MOUSE OR FINGER ✨', canvas.width / 2, canvas.height / 2);
+
+      let drawing = false;
+      const scratch = (x, y) => {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x, y, 28, 0, Math.PI * 2);
+        ctx.fill();
+      };
+
+      canvas.onmousedown = () => { drawing = true; };
+      window.onmouseup = () => { drawing = false; };
+      canvas.onmousemove = (e) => {
+        if (!drawing) return;
+        const rect = canvas.getBoundingClientRect();
+        scratch(e.clientX - rect.left, e.clientY - rect.top);
+      };
+
+      canvas.ontouchstart = () => { drawing = true; };
+      canvas.ontouchend = () => { drawing = false; };
+      canvas.ontouchmove = (e) => {
+        if (!drawing) return;
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        scratch(touch.clientX - rect.left, touch.clientY - rect.top);
+      };
+    }
+
+    // Navigation Tab Switcher
+    function switchTab(idx) {
+      document.querySelectorAll('.tab-view').forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
+      });
+      document.querySelectorAll('.nav-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === idx);
+      });
+      playPluck(440 + idx * 110);
+      if (idx === 3) setTimeout(initScratchCard, 60);
+    }
+
+    // =========================================================================
+    // 7. CONFETTI CANNON
+    // =========================================================================
+    const confCanvas = document.getElementById('confetti-canvas');
+    const confCtx = confCanvas.getContext('2d');
+    let particles = [];
+
+    function resizeConfetti() {
+      confCanvas.width = window.innerWidth;
+      confCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeConfetti);
+    resizeConfetti();
+
+    function triggerConfetti() {
+      playPluck(880);
+      for (let i = 0; i < 80; i++) {
+        particles.push({
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2,
+          vx: (Math.random() - 0.5) * 16,
+          vy: (Math.random() - 0.8) * 16,
+          size: Math.random() * 8 + 4,
+          color: ['#10b981', '#f43f5e', '#f59e0b', '#38bdf8', '#a855f7'][Math.floor(Math.random() * 5)],
+          life: 100
+        });
+      }
+    }
+
+    function renderConfetti() {
+      confCtx.clearRect(0, 0, confCanvas.width, confCanvas.height);
+      particles.forEach((p, index) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.35;
+        p.life -= 1;
+        confCtx.fillStyle = p.color;
+        confCtx.fillRect(p.x, p.y, p.size, p.size);
+        if (p.life <= 0) particles.splice(index, 1);
+      });
+      requestAnimationFrame(renderConfetti);
+    }
+    renderConfetti();
   </script>
 </body>
 </html>
