@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>For Boopa // Birthday Studio</title>
+  <style>
+    :root {
+      --bg: #090b0e;
+      --panel: #12151c;
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+      --text: #f3f4f6;
+      --muted: #6b7280;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+    body {
+      background-color: var(--bg);
+      background-image: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08), transparent 60%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .studio-deck {
+      background: var(--panel);
+      border: 1px solid #222733;
+      border-radius: 24px;
+      padding: 32px;
+      max-width: 820px;
+      width: 100%;
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.85);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #222733;
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .title-area h1 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+
+    .title-area h1 span { color: var(--accent); }
+    .title-area p { font-size: 0.85rem; color: var(--muted); margin-top: 5px; }
+
+    .status-badge {
+      background: #1a1f29;
+      border: 1px solid #2d3545;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+
+    .status-badge:hover { border-color: var(--accent); }
+
+    .status-badge.active {
+      border-color: var(--accent);
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--accent);
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #ef4444;
+      transition: all 0.3s ease;
+    }
+
+    .status-badge.active .dot {
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+
+    /* Live Visualizer */
+    .visualizer-box {
+      width: 100%;
+      height: 70px;
+      background: #0c0e13;
+      border: 1px solid #1e232e;
+      border-radius: 14px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .viz-label {
+      position: absolute;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #374151;
+      pointer-events: none;
+    }
+
+    /* Mixer Grid */
+    .mixer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+      gap: 16px;
+    }
+
+    .channel {
+      background: #0d1016;
+      border: 1px solid #1e232e;
+      border-radius: 18px;
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.35s ease;
+    }
+
+    .channel.unlocked {
+      border-color: var(--accent);
+      box-shadow: 0 0 25px var(--accent-glow);
+      transform: translateY(-2px);
+    }
+
+    .track-name {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .channel.unlocked .track-name { color: var(--accent); }
+
+    .fader-wrap {
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 8px 0;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 135px;
+      height: 6px;
+      background: #222733;
+      border-radius: 5px;
+      transform: rotate(-90deg);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      background: var(--text);
+      border: 2px solid var(--accent);
+      cursor: grab;
+      box-shadow: 0 0 12px rgba(0,0,0,0.6);
+      transition: transform 0.1s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:active {
+      cursor: grabbing;
+      transform: scale(1.1);
+    }
+
+    .level-readout {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: var(--accent);
+      margin-top: 10px;
+    }
+
+    .memory-card {
+      margin-top: 14px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.45;
+      min-height: 75px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.2;
+      filter: blur(5px);
+      transition: all 0.5s ease;
+      padding: 0 4px;
+    }
+
+    .channel.unlocked .memory-card {
+      opacity: 1;
+      filter: blur(0);
+      color: #e5e7eb;
+    }
+
+    /* Final Birthday Message Reveal */
+    .master-reveal {
+      margin-top: 28px;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(16, 185, 129, 0.02));
+      border: 1px solid var(--accent);
+      border-radius: 18px;
+      padding: 28px 24px;
+      text-align: center;
+      display: none;
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    .master-reveal.show { display: block; }
+    .master-reveal h2 { font-size: 1.4rem; color: var(--accent); margin-bottom: 12px; }
+    .master-reveal p { font-size: 0.98rem; line-height: 1.65; color: #e5e7eb; max-width: 620px; margin: 0 auto; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="studio-deck">
+    <div class="header">
+      <div class="title-area">
+        <h1>SESSION // <span>FOR BOOPA</span></h1>
+        <p>Slide all 4 faders above 75% to build our soundscape & unlock your birthday note</p>
+      </div>
+      <button class="status-badge" id="power-btn">
+        <span class="dot"></span>
+        <span id="power-text">INITIALIZE AUDIO</span>
+      </button>
+    </div>
+
+    <div class="visualizer-box">
+      <span class="viz-label" id="viz-status">STANDBY FREQUENCY</span>
+      <canvas id="waveform"></canvas>
+    </div>
+
+    <div class="mixer-grid" id="mixer"></div>
+
+    <div class="master-reveal" id="final-message">
+      <h2 id="final-heading"></h2>
+      <p id="final-body"></p>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // CUSTOMIZE YOUR NOTES FOR BOOPA HERE (If you want to tweak the words!)
+    // =========================================================================
+    const CONFIG = {
+      finalHeading: "Happy Birthday, Boopa! ✨💚",
+      finalLetter: "Just like a song only feels complete when every frequency locks into harmony, life hits a whole different note with you in it. Thank you for being my favorite melody, my calm in the noise, and my favorite person. Here is to your happiest, brightest year yet.",
+      tracks: [
+        {
+          name: "01 / Warm Chords",
+          secretNote: "For the effortless warmth and comfort you bring into every single day."
+        },
+        {
+          name: "02 / Midnight Pluck",
+          secretNote: "Because even the quietest, simplest moments with you turn into my favorite memories."
+        },
+        {
+          name: "03 / Vinyl Rain",
+          secretNote: "For all our random inside jokes, late-night talks, and unstoppable laughs."
+        },
+        {
+          name: "04 / Heartbeat Bass",
+          secretNote: "You're the steady rhythm underneath everything. Happy Birthday, Boopa."
+        }
+      ]
+    };
+    // =========================================================================
+
+    document.getElementById('final-heading').innerText = CONFIG.finalHeading;
+    document.getElementById('final-body').innerText = CONFIG.finalLetter;
+
+    const mixerEl = document.getElementById('mixer');
+    const powerBtn = document.getElementById('power-btn');
+    const powerText = document.getElementById('power-text');
+    const finalBox = document.getElementById('final-message');
+    const vizStatus = document.getElementById('viz-status');
+
+    // Build UI Channels
+    CONFIG.tracks.forEach((track, index) => {
+      const channel = document.createElement('div');
+      channel.className = 'channel';
+      channel.id = `channel-${index}`;
+      channel.innerHTML = `
+        <div class="track-name">${track.name}</div>
+        <div class="fader-wrap">
+          <input type="range" min="0" max="100" value="0" data-index="${index}">
+        </div>
+        <div class="level-readout" id="readout-${index}">0%</div>
+        <div class="memory-card">${track.secretNote}</div>
+      `;
+      mixerEl.appendChild(channel);
+    });
+
+    // =========================================================================
+    // BUILT-IN WEB AUDIO SYNTHESIZER ENGINE (Zero external MP3s required)
+    // =========================================================================
+    let audioCtx = null;
+    let isPlaying = false;
+    let masterAnalyser = null;
+    const channelGains = [null, null, null, null];
+    let intervals = [];
+
+    function initAudioEngine() {
+      if (audioCtx) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+
+      masterAnalyser = audioCtx.createAnalyser();
+      masterAnalyser.fftSize = 256;
+      masterAnalyser.connect(audioCtx.destination);
+
+      // Create Master Gains for the 4 Faders
+      for (let i = 0; i < 4; i++) {
+        channelGains[i] = audioCtx.createGain();
+        channelGains[i].gain.value = 0;
+        channelGains[i].connect(masterAnalyser);
+      }
+
+      // 1. Track 1: Warm Ambient Maj9 Pad Chords
+      const chordFreqs = [261.63, 329.63, 392.00, 493.88, 587.33]; // Cmaj9
+      const padFilter = audioCtx.createBiquadFilter();
+      padFilter.type = 'lowpass';
+      padFilter.frequency.value = 650;
+      padFilter.connect(channelGains[0]);
+
+      chordFreqs.forEach(freq => {
+        const osc = audioCtx.createOscillator();
+        const subGain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.value = freq;
+        osc.detune.value = (Math.random() - 0.5) * 14;
+        subGain.gain.value = 0.06;
+        osc.connect(subGain);
+        subGain.connect(padFilter);
+        osc.start();
+      });
+
+      // 2. Track 2: Generative Plucked Arpeggio Melody
+      const scale = [523.25, 587.33, 659.25, 783.99, 987.77, 1046.50];
+      const melodyLoop = setInterval(() => {
+        if (!isPlaying || !audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const noteGain = audioCtx.createGain();
+        osc.type = 'triangle';
+        const note = scale[Math.floor(Math.random() * scale.length)];
+        osc.frequency.setValueAtTime(note, audioCtx.currentTime);
+
+        noteGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+        noteGain.gain.exponentialRampToValueAtTime(0.18, audioCtx.currentTime + 0.04);
+        noteGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.4);
+
+        osc.connect(noteGain);
+        noteGain.connect(channelGains[1]);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 1.45);
+      }, 450);
+      intervals.push(melodyLoop);
+
+      // 3. Track 3: Cozy Vinyl Rain / Lo-Fi Texture
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const whiteNoise = audioCtx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+      whiteNoise.loop = true;
+
+      const rainFilter = audioCtx.createBiquadFilter();
+      rainFilter.type = 'bandpass';
+      rainFilter.frequency.value = 1100;
+      rainFilter.Q.value = 0.7;
+
+      const rainGain = audioCtx.createGain();
+      rainGain.gain.value = 0.12;
+
+      whiteNoise.connect(rainFilter);
+      rainFilter.connect(rainGain);
+      rainGain.connect(channelGains[2]);
+      whiteNoise.start();
+
+      // 4. Track 4: Warm Heartbeat Sub-Bass
+      const bassLoop = setInterval(() => {
+        if (!isPlaying || !audioCtx) return;
+        const triggerPulse = (delay) => {
+          const osc = audioCtx.createOscillator();
+          const bGain = audioCtx.createGain();
+          osc.type = 'sine';
+          const now = audioCtx.currentTime + delay;
+          osc.frequency.setValueAtTime(95, now);
+          osc.frequency.exponentialRampToValueAtTime(42, now + 0.25);
+
+          bGain.gain.setValueAtTime(0.001, now);
+          bGain.gain.linearRampToValueAtTime(0.45, now + 0.03);
+          bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+          osc.connect(bGain);
+          bGain.connect(channelGains[3]);
+          osc.start(now);
+          osc.stop(now + 0.5);
+        };
+        triggerPulse(0);
+        triggerPulse(0.28);
+      }, 1800);
+      intervals.push(bassLoop);
+
+      drawVisualizer();
+    }
+
+    // Toggle Power Button
+    powerBtn.addEventListener('click', () => {
+      initAudioEngine();
+      if (!isPlaying) {
+        audioCtx.resume();
+        isPlaying = true;
+        powerBtn.classList.add('active');
+        powerText.innerText = 'STUDIO LIVE';
+        vizStatus.style.display = 'none';
+      } else {
+        audioCtx.suspend();
+        isPlaying = false;
+        powerBtn.classList.remove('active');
+        powerText.innerText = 'PAUSED';
+        vizStatus.style.display = 'block';
+      }
+    });
+
+    // Fader Controls
+    document.querySelectorAll('input[type="range"]').forEach(slider => {
+      slider.addEventListener('input', (e) => {
+        const idx = parseInt(e.target.getAttribute('data-index'), 10);
+        const val = parseInt(e.target.value, 10);
+
+        if (!isPlaying) powerBtn.click();
+
+        if (channelGains[idx] && audioCtx) {
+          channelGains[idx].gain.setTargetAtTime(val / 100, audioCtx.currentTime, 0.05);
+        }
+
+        document.getElementById(`readout-${idx}`).innerText = `${val}%`;
+
+        const channelEl = document.getElementById(`channel-${idx}`);
+        if (val >= 75) {
+          channelEl.classList.add('unlocked');
+        } else {
+          channelEl.classList.remove('unlocked');
+        }
+
+        const allSliders = Array.from(document.querySelectorAll('input[type="range"]'));
+        const allUnlocked = allSliders.every(s => parseInt(s.value, 10) >= 75);
+        if (allUnlocked) {
+          finalBox.classList.add('show');
+        }
+      });
+    });
+
+    // Live Oscilloscope Visualizer
+    function drawVisualizer() {
+      const canvas = document.getElementById('waveform');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth * window.devicePixelRatio;
+      canvas.height = canvas.clientHeight * window.devicePixelRatio;
+
+      const bufferLength = masterAnalyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      function render() {
+        requestAnimationFrame(render);
+        masterAnalyser.getByteTimeDomainData(dataArray);
+
+        ctx.fillStyle = '#0c0e13';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#10b981';
+        ctx.beginPath();
+
+        const sliceWidth = canvas.width / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+          const v = dataArray[i] / 128.0;
+          const y = (v * canvas.height) / 2;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+          x += sliceWidth;
+        }
+        ctx.lineTo(canvas.width, canvas.height / 2);
+        ctx.stroke();
+      }
+      render();
+    }
+  </script>
+</body>
+</html>
